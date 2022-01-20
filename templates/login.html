@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}
+  Admin Login
+{% endblock title %}
+{% block content %}
+  <!-- Navbar -->
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">HILBERT HOTELS</a>
+    </div>
+</nav>
+
+<!-- Login Form -->
+<form class="position-absolute top-50 start-50 translate-middle" method="post"> <!--center this form-->
+    <div class="mb-3">
+      <label class="form-label">Username</label>
+      <input type="text" name="username" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" required>
+    </div>
+    <div class="mb-3"> 
+      <label for="exampleInputPassword1" class="form-label">Password</label>
+      <input type="password" name="pwd" class="form-control" id="exampleInputPassword1" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</section>
+
+{% endblock content %}
+    
