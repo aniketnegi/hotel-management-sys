@@ -1,6 +1,6 @@
 # To-do for hotel-management-system
 
-# add-admins.py
+# file: add-admins.py
 
 ### func -> addAdmin
 -  Adding an admin seems to mess up the id increments
