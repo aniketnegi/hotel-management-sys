@@ -16,4 +16,4 @@
 ---
 
 # General Tasks:
-- Make a .ps1 or .bat script to do all these tasks from one place. (don't forget to make sure python is installed and also "pip install -r requirements.txt")!
+- Link to notion db - https://aniketnegi.notion.site/HILBERT-HOTEL-7ad46e5797b94f18976db2f968221901
