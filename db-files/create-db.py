@@ -1,6 +1,6 @@
-import mysql.connector
+import pymysql as pm
 
-db = mysql.connector.connect(
+db = pm.connect(
     host="localhost",
     user="root",
     passwd="root")

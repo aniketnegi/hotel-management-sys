@@ -1,56 +1,51 @@
-from os import name
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from flask_mysqldb import MySQL
-
+# Importing the libraries
+from flask import Flask, flash, render_template, redirect  #Flask is the framework
+from forms import loginForm  #Importing forms from forms.py made using wtforms
+import pymysql as pm  #Importing pymysql
 
 app = Flask(__name__)
-
-# Config MySQL
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'root'
-app.config['MYSQL_DB'] = 'hotel_mgmt'
-app.config['SECRET_KEY'] = 'wTcnxeGX7Uj&@5p$bf%L!QBVx2St!rYUEvtKwF#$nNfs&bbZDraFfNQS2Eib6#t@%@EJ*iqsYugNqpCtJ8d48i@djrZDEeh$U@8sKPkhbu5T&S3jDAfpvP7tmqiis7^$'    
-
-mysql = MySQL(app)
+# Configure the database
+app.config['SECRET_KEY'] = 'mysecretkey'
+db = pm.connect(host='localhost', user='root', passwd='root', db='hotel_mgmt')
+cursor = db.cursor()
 
 
-
-@app.route('/', methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        userDetails = request.form
-        uname = userDetails['username'].strip()
-        pwd = userDetails['pwd']
-        
-        # Fetch user id, pwd from db
-        cursor = mysql.connection.cursor()
-        cursor.execute(f"SELECT * FROM employee_login WHERE username = '{uname}' AND password = '{pwd}'")
-        data = cursor.fetchone()
-        
-        if data:
-            cursor.execute(f"SELECT name FROM employee_login WHERE username = '{uname}' AND password = '{pwd}'")
-            
-            for i in cursor.fetchone(): name=i
-            
-            flash(f"Welcome {name}", "success")
-            return redirect(url_for('admin'))
-            cursor.close()
-        else:
-            flash("Invalid username and password")
-            return redirect(url_for('login'))
-    
-    return render_template('login.html')
-
-
-@app.route('/admin')
+# Admin route 
+@app.route('/admin', methods=['GET', 'POST'])
 def admin():
-    return render_template('admin.html')
+    form = loginForm()
+    status = False
+    if form.validate_on_submit(): #form validation
 
-@app.route('/table')
-def table():
-    return render_template('table.html')
+        username = cursor.execute(
+            'SELECT username FROM employee_login WHERE username = "{}"'.format(
+                form.username.data))
+        
+
+        if username:
+            username = ''.join(
+            cursor.fetchone())  #Convert the fetched tuple into str
+            password = form.password.data
+            user_pass = cursor.execute(
+                'SELECT password FROM employee_login WHERE username = "{}"'.
+                format(form.username.data))
+            user_pass = ''.join(cursor.fetchone())
+
+            if password == user_pass:
+                status = True
+                name = cursor.execute(
+                    "SELECT name FROM employee_login WHERE username = '{}'".
+                    format(form.username.data))
+                name = ''.join(cursor.fetchone())
+                return render_template('admin.html', name=name, status=status, form=form)
+            else:
+                flash('Invalid Password!')
+                return render_template('admin.html', status=status, form=form)
+        else:
+            flash('Invalid password or username')
+            return render_template('admin.html', form=form)
+    return render_template('admin.html', form=form)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
