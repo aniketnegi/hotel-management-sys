@@ -1,34 +1,38 @@
 {% extends 'base.html' %}
-{% block title %}
-  Admin Login
-{% endblock title %}
-{% block content %}
-  <!-- Navbar -->
-  <nav class="navbar navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">HILBERT HOTELS</a>
-    </div>
-</nav>
 
-<!-- Login Form -->
-<form class="position-absolute top-50 start-50 translate-middle" method="post"> <!--center this form-->
-    <div class="mb-3">
-      <label class="form-label">Username</label>
-      <input type="text" name="username" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" required>
+{% block content %}
+<div class="container">
+    <div class="display-2">
+        <center>
+            <div class="my-4">
+                Login
+            </div>
+        </center>
     </div>
-    <div class="mb-3"> 
-      <label for="exampleInputPassword1" class="form-label">Password</label>
-      <input type="password" name="pwd" class="form-control" id="exampleInputPassword1" required>
+    {% for message in get_flashed_messages() %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+
+        {{ message }}
+
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-    <button type="submit" class="btn btn-primary">Submit</button>
-  </form>
-</section>
-{% with messages = get_flashed_messages() %}
-   {% if messages %}
-      {% for message in messages %}
-         {{ message }}
-      {% endfor %}
-   {% endif %}
-{% endwith %}
+    {% endfor %}
+
+    <div class="container shadow p-3 mb-5 bg-body rounded">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            {{ form.username.label(class="form-label")}}
+            {{ form.username(class="form-control")}}
+            <br>
+            {{ form.password.label(class="form-label")}}
+            {{ form.password(class="form-control")}}
+            <br>
+            <div class="d-grid gap-2 col-6 mx-auto">
+                {{ form.submit(class="btn btn-dark my-2 position-absolute top-150 start-50 translate-middle")}}
+            </div>
+            <br>
+
+        </form>
+    </div>
+</div>
 {% endblock content %}
-    

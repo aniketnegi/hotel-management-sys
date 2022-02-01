@@ -1,2 +1,0 @@
-- Currently, the passwords are being stored in plaintext. It is advised to switch to encrypted.
-	-- For that, changes to be made to db as well as forms.py class loginForm()

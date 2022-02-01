@@ -1,25 +1,12 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<center>
-    <div class="my-4">
-        <h1 class="display-1">Book your stay now!</h1>
-    </div>
-</center>
-
-<br>
-
-<!--Alert-->
-
-{% for message in get_flashed_messages() %}
-<div class="alert alert-warning alert-dismissible fade show" role="alert">
-    {{ message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-{% endfor %}
-
-<!--Form-->
-<div class="container w-50 shadow p-3 mb-5 bg-body rounded">
+{% extends 'admin_base.html' %}
+  
+  {% block title %}
+      Bookings
+  {% endblock %}
+  
+  {% block content %}
+      <!--Form-->
+<div class="container w-50 shadow p-3 mb-5 bg-body rounded my-4">
     <form method="POST">
         {{ form.hidden_tag() }}
 
@@ -100,4 +87,5 @@
 
     </form>
 </div>
-{% endblock content %}
+  {% endblock %}
+  

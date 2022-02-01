@@ -1,0 +1,39 @@
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+    <div class="d-flex flex-column p-3 text-white bg-dark" style="height: 100%;">
+        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <span class="fs-4">Hello "Logged in Employee"</span>
+        </a>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item">
+                <a href="{{ url_for('confirm') }}" class="nav-link text-white ">
+                    Confirm Reservation
+                </a>
+            </li>
+            <a href="{{ url_for('bookings') }}" class="nav-link text-white ">
+                Booking
+            </a>
+            </li>
+            <li>
+                <a href="{{ url_for('details') }}" class="nav-link text-white ">
+                    Customer Details
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('services') }}" class="nav-link text-white ">
+                    Customer Service
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('checkout') }}" class="nav-link text-white">
+                    Checkout
+                </a>
+            </li>
+        </ul>
+        <hr>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-block">
+            Logout
+        </a>
+    </div>
+</div>
+<!-- Sidebar Content End -->

@@ -1,0 +1,6 @@
+Aniket,aniketnegi@duck.com,9999037395,110045,Delhi,India,2021-12-14,2022-01-01,None whatsoever mate.
+''' # Writing data into text file.
+        with open('reservations.txt', 'a') as file:
+            file.write(
+                f"{form.name.data},{form.email.data},{form.phone.data},{form.postal_code.data},{form.state.data},{form.country.data},{form.arrival_date.data},{form.departure_date.data},{form.comments.data}\n"
+            )'''
