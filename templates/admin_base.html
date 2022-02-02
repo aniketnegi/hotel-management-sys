@@ -19,17 +19,19 @@
 
 <body>
     <!--Navbar-->
-    {% include 'navbar.html' %}
-    <!--End of Navbar-->
-    <!-- Sidebar Trigger Btn-->
-    <div class="position-relative">
-        <div class="position-absolute top-0 start-0 translate-x my-2 mx-2">
-            <a class="btn btn-outline-dark" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button"
-                aria-controls="offcanvasExample">
-                Operations
-            </a>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+          <div class="position-absolute top-50 start-50 translate-middle">
+            <a class="navbar-brand fw-bold text-uppercase" href="{{ url_for('index') }}">HILBERT HOTEL</a>
+          </div>
+          <a class="navbar-toggler" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button"
+            aria-controls="offcanvasExample">
+            <span class="navbar-toggler-icon"></span>
+          </a>
         </div>
-    </div>
+      </nav>
+    <!--End of Navbar-->
+    
     <!-- Sidebar Content -->
     {% include 'sidebar.html' %}
     <div class="container">

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, EmailField, SelectField, DateField, TextAreaField, IntegerField
+from wtforms import StringField, PasswordField, SubmitField, EmailField, SelectField, DateField, TextAreaField, IntegerField, FloatField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 
 
@@ -35,4 +35,19 @@ class confirmReservation(FlaskForm):
     delete = SubmitField('Delete')
     edit = SubmitField('Edit')
     confirm = SubmitField('Confirm')
-    
+
+class servicesForm(FlaskForm):
+    service_id = SelectField('Service', choices=[('1', 'Room Service'), ('2', 'Laundry'), ('3', 'Restaurant'), ('4', 'Minibar'), ('5', 'Chauffeur')], validators=[DataRequired()])
+    comments = TextAreaField('Comments')
+    price = FloatField('Payment', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+class userServicesForm(FlaskForm):
+    search_by = SelectField('Add By', choices=[('customer_id', "Customer ID"), ('name', 'Name'), ('email', 'Email'), ('contact_no', 'Phone')], validators=[DataRequired()])
+    search_value = StringField('Enter Value', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+class checkoutForm(FlaskForm):
+    cust_id = StringField('Customer ID', validators=[DataRequired()])
+    payment_options = SelectField('Payment Options', choices=[('1', 'Cash'), ('2', 'Card'), ('3', 'Online')], validators=[DataRequired()])
+    submit = SubmitField('Confirm Checkout')

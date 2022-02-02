@@ -1,12 +1,18 @@
 {% extends 'admin_base.html' %}
-  
-  {% block title %}
-      Bookings
-  {% endblock %}
-  
-  {% block content %}
-      <!--Form-->
-<div class="container w-50 shadow p-3 mb-5 bg-body rounded my-4">
+
+{% block title %}
+Bookings
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="display-4">
+        Booking
+    </div>
+    <hr>
+</div>
+<!--Form-->
+<div class="container-fluid w-75 shadow p-3 my-5 bg-body rounded">
     <form method="POST">
         {{ form.hidden_tag() }}
 
@@ -76,16 +82,10 @@
 
         <br>
 
-        {{ form.comments.label(class="form-label")}}
-        {{ form.comments(class="form-control")}}
-
-        <br>
-
         {{ form.submit(class="btn btn-dark my-2 position-absolute top-150 start-50 translate-middle")}}
 
         <br>
 
     </form>
 </div>
-  {% endblock %}
-  
+{% endblock %}

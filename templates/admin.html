@@ -1,30 +1,14 @@
-<<<<<<< Updated upstream
-{% extends 'base.html' %}
-{% block title %}
-    Admin
-{% endblock title %}            
-    {% block content %}
-        <h1>Welcome to the admin place</h1>
-        <p>{% with messages = get_flashed_messages() %}
-            {% if messages %}
-               {% for message in messages %}
-                  {{ message }}
-               {% endfor %}
-            {% endif %}
-         {% endwith %}</p>
-        Back to <a href="{{ url_for('login') }}">home</a>
-    {% endblock content %}
-=======
 {% extends 'admin_base.html' %}
 
 {% block content %}
 <div class="container mx-4">
   <h3>
-    This page contains a table-list of all the rooms in the following format -
+    This page contains "/admin/found/2" style 3 cards
   </h3>
-  <p class="fw-normal">
-    |-- Room Number --||-- Room Type(AC/Deluxe etc.) --||-- Reservation Status(Booked/Empty) --||-- Ready for Checkin(Already cleaned?) --|
-  </p>
+    <ul>
+    <li>Number of guests: {{ guests }}</li> 
+    <li>Number of Vacant Rooms</li>
+    <li>3rd -> Something iDK</li>
+  </ul>
 </div>
 {% endblock content %}
->>>>>>> Stashed changes

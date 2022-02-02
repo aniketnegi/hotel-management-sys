@@ -1,7 +1,7 @@
 <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
     <div class="d-flex flex-column p-3 text-white bg-dark" style="height: 100%;">
-        <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-            <span class="fs-4">Hello "Logged in Employee"</span>
+        <a href="/admin/dashboard" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <span class="fs-4">Dashboard</span>
         </a>
         <hr>
         <ul class="nav nav-pills flex-column mb-auto">
@@ -20,7 +20,7 @@
                 </a>
             </li>
             <li>
-                <a href="{{ url_for('services') }}" class="nav-link text-white ">
+                <a href="{{ url_for('userServices') }}" class="nav-link text-white ">
                     Customer Service
                 </a>
             </li>

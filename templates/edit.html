@@ -1,5 +1,79 @@
 {% extends 'admin_base.html' %}
-{% block content %}
-    Yo Edit the Reservation Here
-    
-{% endblock content %}
+  
+  {% block title %}
+      Bookings
+  {% endblock %}
+  
+  {% block content %}
+      <!--Form-->
+<div class="container w-50 shadow p-3 mb-5 bg-body rounded my-4">
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        {{ form.name.label(class="form-label")}}*
+        {{ form.name(class="form-control", value = customer_data.name)}}
+
+        <br>
+
+        <div class="row row-cols-2">
+            <div class="col">
+                {{ form.phone.label(class="form-label")}}*
+                {{ form.phone(class="form-control", value = customer_data.contact_no)}}
+            </div>
+            <div class="col">
+                {{ form.email.label(class="form-label")}}*
+                {{ form.email(class="form-control", value = customer_data.email)}}
+            </div>
+        </div>
+
+        <br>
+
+        {{ form.address.label(class="form-label")}}*
+        {{ form.address(class="form-control", value = customer_data.address)}}
+
+        <br>
+
+        <div class="row row-cols-2">
+            <div class="col">
+                {{ form.arrival_date.label(class="form-label")}}*
+                {{ form.arrival_date(class="form-control", value = customer_data.date_in)}}
+            </div>
+            <div class="col">
+                {{ form.departure_date.label(class="form-label")}}*
+                {{ form.departure_date(class="form-control", value = customer_data.date_out)}}
+            </div>
+        </div>
+
+        <br>
+
+        <div class="row row-cols-2">
+            <div class="cols">
+                {{ form.no_children.label(class="form-label")}}*
+                {{ form.no_children(class="form-control", value = customer_data.no_children)}}
+            </div>
+            <div class="cols">
+                {{ form.no_adults.label(class="form-label")}}*
+                {{ form.no_adults(class="form-control", value = customer_data.no_adults)}}
+            </div>
+        </div>
+
+        <br>
+
+        {{ form.room_preference.label(class="form-label")}}*
+        {{ form.room_preference(class="form-control", value = pref)}}
+
+        <br>
+
+        {{ form.comments.label(class="form-label")}}
+        {{ form.comments(class="form-control", value = customer_data.comments)}}
+
+        <br>
+
+        {{ form.submit(class="btn btn-dark my-2 position-absolute top-150 start-50 translate-middle")}}
+
+        <br>
+
+    </form>
+</div>
+  {% endblock %}
+  
