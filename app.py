@@ -15,7 +15,7 @@
 '''
 
 from flask import Flask, redirect, render_template, url_for, flash
-from webforms import reservationForm, loginForm, confirmReservation, searchReservation, servicesForm, userServicesForm, checkoutForm
+from webforms import reservationForm, loginForm, confirmReservation, roomDetails, searchReservation, servicesForm, userServicesForm, checkoutForm
 import pymysql as pm
 from datetime import datetime
 
@@ -35,47 +35,64 @@ base_charge = 1000
 
 # Login
 logged_in = False
-login_name = ''
 
 # ============================== TODO: Add random customer_id whatever(as required only. check db to confirm the auto_increment and all that are alr there.) =====
 # ============================== TODO: ADMIN DASH ================================================================================================================
 # ============================== TODO: CHECK FOR DESIGN INCONSISTENCIES (The alerts sometimes pop on the full page instead of small part) ========================
+
 
 def checkLoggedIn():
     global logged_in
     return bool(logged_in)
 
 
+def generateRandomID():
+    global cursor
+    cursor.execute("SELECT COUNT(*) FROM customer")
+    count = cursor.fetchone()
+    count = count['COUNT(*)']
+    count += 1
+    return count
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = reservationForm()
 
-    if form.validate_on_submit():
-        data = form.data
+    cursor.execute("SELECT * FROM rooms where status = 0")
+    avail_rooms = cursor.fetchall()
 
-        if data['arrival_date'] > data['departure_date']:
-            flash(
-                'Arrival date cannot be after departure date! Please try again.'
-            )
-            return redirect(url_for('index'))
-        else:
-            current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    if len(avail_rooms) == 0:
+        flash("No rooms available at the moment. Please try again later.")
+        return render_template('index.html', form=form)
+    else:
 
-            data['comments'] = 'NULL' if data['comments'] == '' else data[
-                'comments']  # Just a Default Value
+        if form.validate_on_submit():
+            data = form.data
 
-            cursor.execute(
-                "INSERT INTO booked (name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults, room_preference, comments, time_booked) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                (data['name'], data['phone'], data['address'], data['email'],
-                 data['id_type'], data['id_number'], data['arrival_date'],
-                 data['departure_date'], data['no_children'],
-                 data['no_adults'], data['room_preference'], data['comments'],
-                 current_time))
+            if data['arrival_date'] > data['departure_date']:
+                flash(
+                    'Arrival date cannot be after departure date! Please try again.'
+                )
+                return redirect(url_for('index'))
+            else:
+                current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
-            db.commit()
+                data['comments'] = 'NULL' if data['comments'] == '' else data[
+                    'comments']  # Just a Default Value
 
-            flash(f'Reservation for {form.name.data} has been made!')
-            return redirect(url_for('index'))
+                cursor.execute(
+                    "INSERT INTO booked (name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults, room_preference, comments, time_booked) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (data['name'], data['phone'], data['address'],
+                     data['email'], data['id_type'], data['id_number'],
+                     data['arrival_date'], data['departure_date'],
+                     data['no_children'], data['no_adults'],
+                     data['room_preference'], data['comments'], current_time))
+
+                db.commit()
+
+                flash(f'Reservation for {form.name.data} has been made!')
+                return redirect(url_for('index'))
 
     return render_template('index.html', form=form)
 
@@ -84,7 +101,7 @@ def index():
 def login():
     form = loginForm()
 
-    global logged_in, login_name
+    global logged_in
 
     if form.validate_on_submit():
         login_data = form.data
@@ -109,7 +126,6 @@ def login():
                         f"SELECT name FROM users WHERE username = '{login_data['username']}'"
                     )
 
-                    login_name = cursor.fetchone()['name']
                     return redirect(url_for('admin'))
                 else:
 
@@ -124,10 +140,34 @@ def login():
     return render_template('login.html', form=form)
 
 
-@app.route('/admin/dashboard')
+@app.route('/admin/dashboard', methods=['GET', 'POST'])
 def admin():
     if checkLoggedIn():
-        return render_template('admin.html')
+        form = roomDetails()
+        # Calculate the number of online bookings -
+        cursor.execute("SELECT COUNT(*) FROM booked WHERE status = 0")
+        online_bookings = cursor.fetchone()['COUNT(*)']
+
+        # Calculate the number of guests -
+        cursor.execute("SELECT COUNT(*) FROM checked_in")
+        guests = cursor.fetchone()['COUNT(*)']
+
+        # Calculate the number of vacant rooms -
+        cursor.execute("SELECT COUNT(*) FROM rooms WHERE status = 0")
+        vacant_rooms = cursor.fetchone()['COUNT(*)']
+
+        if form.validate_on_submit() and form.submit.data:
+            cursor.execute("SELECT * FROM rooms")
+            rooms = cursor.fetchall()
+            for i in rooms:
+                i['status'] = bool(i['status'])
+            return render_template('room_table.html', room_data=rooms)
+
+        return render_template('admin.html',
+                               online_bookings=online_bookings,
+                               guests=guests,
+                               vacant_rooms=vacant_rooms,
+                               form=form)
     else:
         return redirect('unauthorized')
 
@@ -168,18 +208,28 @@ def reservation_found(id):
     customer_data = cursor.fetchone()
 
     if form.validate_on_submit():
+
         if form.delete.data:
             cursor.execute(f"DELETE FROM booked WHERE booking_id = {id}")
             db.commit()
             flash('Reservation has been deleted!')
             return redirect(url_for('confirm'))
+
         elif form.edit.data:
             return redirect(url_for('edit_reservation', id=id))
+
         elif form.confirm.data:
+            # Change status in booked table
             cursor.execute(
                 f"UPDATE booked SET status = 1 WHERE booking_id = {id}")
+
+            # Generate a unique id for the customer and insert into checked_in table first, followed by the check_in info.
+            customer_id = generateRandomID()
             cursor.execute(
-                f"INSERT INTO checked_in(name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults) SELECT name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults FROM booked WHERE booking_id = {id}"
+                "INSERT INTO checked_in (customer_id, booking_cid) VALUES (%s, %s)",
+                (customer_id, id))
+            cursor.execute(
+                f"INSERT INTO checked_in(name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults) where customer_id = {customer_id} SELECT name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults FROM booked WHERE booking_id = {id}"
             )
             # ===== Add booking id etc. ========
             db.commit()
@@ -224,13 +274,17 @@ def bookings():
     if form.validate_on_submit():
         data = form.data
 
-        # Give a room based on preference or an error if room is not avail.
-        # Give a customer id
+        current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+        data['comments'] = 'NULL' if data['comments'] == '' else data[
+            'comments']  # Just a Default Value
+
         cursor.execute(
-            "INSERT INTO checked_in (name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            "INSERT INTO booked (name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults, room_preference, comments, time_booked) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (data['name'], data['phone'], data['address'], data['email'],
              data['id_type'], data['id_number'], data['arrival_date'],
-             data['departure_date'], data['no_children'], data['no_adults']))
+             data['departure_date'], data['no_children'], data['no_adults'],
+             data['room_preference'], data['comments'], current_time))
 
         db.commit()
 
@@ -301,8 +355,9 @@ def checkout():
                 cursor.execute(
                     "INSERT INTO checkout(customer_id, checkout_time) VALUES (%s, %s)",
                     (data['cust_id'], current_time))
+                
+                cursor.execute('UPDATE checked_in SET date_out = %s WHERE customer_id = %s', (current_time, data['cust_id']))
             except Exception as e:
-                print(e)
                 flash(
                     'Customer has already checked out!\nPlease recheck the information.'
                 )
@@ -323,12 +378,16 @@ def checkout():
             return abs((date2 - date1).days)
 
         date1 = customer_data['date_in']
-        date2 = customer_data['date_out']
+        #date2 = customer_data['date_out']
+        date2 = current_time
         days = date_diff(date1, date2) + 1
 
         # Calculate the bill for each service
         global base_charge
-        base_charges_dict = ({'name': 'Base Charges', 'amount': days * base_charge})
+        base_charges_dict = ({
+            'name': 'Base Charges',
+            'amount': days * base_charge
+        })
         bill += [base_charges_dict]
 
         cursor.execute(
@@ -343,9 +402,11 @@ def checkout():
         if len(user_avail_services) != 0:
             for service in user_avail_services:
                 for service_db_dict in id_services_db:
-                    if int(service_db_dict['id']) == int(service['service_id']):
-                        temp_price_dict = ({'name': service_db_dict['name'],
-                                            'amount': int(service['bill'])
+                    if int(service_db_dict['id']) == int(
+                            service['service_id']):
+                        temp_price_dict = ({
+                            'name': service_db_dict['name'],
+                            'amount': int(service['bill'])
                         })
                         bill += [temp_price_dict]
 
@@ -356,7 +417,7 @@ def checkout():
         total_bill = 0
         for i in bill:
             total_bill += i['amount']
-            
+
         return render_template('checkout.html',
                                customer_data=customer_data,
                                status=True,
@@ -367,9 +428,8 @@ def checkout():
 
 @app.route('/admin/logout')
 def logout():
-    global logged_in, login_name
+    global logged_in
     logged_in = False
-    login_name = ''
     return redirect(url_for('login'))
 
 

@@ -1,14 +1,38 @@
 {% extends 'admin_base.html' %}
 
 {% block content %}
-<div class="container mx-4">
-  <h3>
-    This page contains "/admin/found/2" style 3 cards
-  </h3>
-    <ul>
-    <li>Number of guests: {{ guests }}</li> 
-    <li>Number of Vacant Rooms</li>
-    <li>3rd -> Something iDK</li>
-  </ul>
-</div>
+  <div class="row">
+    <div class="col">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Unconfirmed Bookings</h5>
+          <p class="card-text">{{ online_bookings }}</p>
+          <a href="{{ url_for('confirm') }}" class="btn btn-dark">Confirm Booking</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Hotel Guests</h5>
+          <p class="card-text">{{ guests }} Guest(s)</p>
+          <a href="{{ url_for('details') }}" class="btn btn-dark">Guest Details</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Vacant Rooms</h5>
+          <p class="card-text">{{ vacant_rooms }}</p>
+          
+          <form method="POST">
+            {{ form.hidden_tag() }}
+            {{ form.submit(class="btn btn-dark")}}
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
 {% endblock content %}

@@ -51,3 +51,6 @@ class checkoutForm(FlaskForm):
     cust_id = StringField('Customer ID', validators=[DataRequired()])
     payment_options = SelectField('Payment Options', choices=[('1', 'Cash'), ('2', 'Card'), ('3', 'Online')], validators=[DataRequired()])
     submit = SubmitField('Confirm Checkout')
+
+class roomDetails(FlaskForm):
+    submit = SubmitField('Room Details')
