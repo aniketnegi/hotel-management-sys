@@ -30,15 +30,16 @@ db = pm.connect(host="localhost",
                 cursorclass=pm.cursors.DictCursor)
 cursor = db.cursor()
 
-# Global Variables
-base_charge = 1000
-
+# Global variables
 # Login
 logged_in = False
 
-# ============================== TODO: Add random customer_id whatever(as required only. check db to confirm the auto_increment and all that are alr there.) =====
-# ============================== TODO: ADMIN DASH ================================================================================================================
+# ============================== TODO: ON EDIT BOOKING, HOW TO PRE-SELECT THE USER SELECTED OPTION IN DROPDOWN FIELD? ==============================
+# ============================== DONE: Add random customer_id whatever(as required only. check db to confirm the auto_increment and all that are alr there.) =====
+# ============================== DONE: ADMIN DASH ================================================================================================================
 # ============================== TODO: CHECK FOR DESIGN INCONSISTENCIES (The alerts sometimes pop on the full page instead of small part) ========================
+# ============================== RIGHT NOW: ROOM_ID IS IN CHECK_IN TABLE BUT FUTURE: CAN ADD CUSTOMER_ID TO ROOMS TABLE INSTEAD AND FIND IT THERE FOR EASE OF BILL CALC AND
+# ALSO SO THAT MORE THAN ONE ROOM CAN BE BOOKED BY A CUSTOMER========================
 
 
 def checkLoggedIn():
@@ -207,6 +208,12 @@ def reservation_found(id):
     cursor.execute(f"SELECT * FROM booked WHERE booking_id = {id}")
     customer_data = cursor.fetchone()
 
+    id_proof_dict = {
+        'A': 'Aadhar Card',
+        'P': 'Passport',
+        'X': 'PAN Card',
+    }
+
     if form.validate_on_submit():
 
         if form.delete.data:
@@ -219,6 +226,21 @@ def reservation_found(id):
             return redirect(url_for('edit_reservation', id=id))
 
         elif form.confirm.data:
+            # Assign a room number to the customer
+            cursor.execute(
+                f"SELECT * FROM rooms WHERE status = 0 and room_type = '{customer_data['room_preference']}'"
+            )
+            room_data = cursor.fetchone()
+            if room_data is not None:
+                cursor.execute(
+                    f"UPDATE rooms SET status = 1 WHERE room_no = {room_data['room_no']}"
+                )
+            else:
+                flash(
+                    'The preferred room is not available! Please refer to this room table for available rooms.'
+                )
+                return render_template('room_table.html', state=True)
+
             # Change status in booked table
             cursor.execute(
                 f"UPDATE booked SET status = 1 WHERE booking_id = {id}")
@@ -231,13 +253,14 @@ def reservation_found(id):
             cursor.execute(
                 f"INSERT INTO checked_in(name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults) where customer_id = {customer_id} SELECT name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults FROM booked WHERE booking_id = {id}"
             )
-            # ===== Add booking id etc. ========
+
             db.commit()
             flash('Reservation has been confirmed!')
             return redirect(url_for('confirm'))
     return render_template('reservation_found.html',
                            customer_data=customer_data,
-                           form=form)
+                           form=form,
+                           id_proof = id_proof_dict[customer_data['id_proof_type']])
 
 
 @app.route('/admin/edit/<int:id>', methods=['GET', 'POST'])
@@ -345,24 +368,42 @@ def checkout():
     form = checkoutForm()
     if form.validate_on_submit() and form.submit.data:
         data = form.data
+
         cursor.execute(
             f"SELECT * from checked_in where customer_id={data['cust_id']}")
         customer_data = cursor.fetchone()
-        print(customer_data['date_out'])
+
         current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
         if customer_data != None:
             try:
                 cursor.execute(
                     "INSERT INTO checkout(customer_id, checkout_time) VALUES (%s, %s)",
                     (data['cust_id'], current_time))
-                
-                cursor.execute('UPDATE checked_in SET date_out = %s WHERE customer_id = %s', (current_time, data['cust_id']))
+
+                cursor.execute(
+                    'UPDATE checked_in SET date_out = %s WHERE customer_id = %s',
+                    (current_time, data['cust_id']))
+
+                cursor.execute(
+                    f"UPDATE checked_in SET status = 2 WHERE customer_id = {data['cust_id']}"
+                )
+
+                cursor.execute(
+                    f"UPDATE checked_in SET booking_cid = NULL WHERE customer_id = {data['cust_id']}"
+                )
+
+                cursor.execute(
+                    f"UPDATE checked_in SET room_id = NULL WHERE customer_id = {data['cust_id']}"
+                )
+
             except Exception as e:
                 flash(
                     'Customer has already checked out!\nPlease recheck the information.'
                 )
                 return redirect(url_for('checkout'))
             db.commit()
+
         else:
             flash('Customer not found!')
             return redirect(url_for('checkout'))
@@ -383,21 +424,36 @@ def checkout():
         days = date_diff(date1, date2) + 1
 
         # Calculate the bill for each service
-        global base_charge
+        cursor.execute(
+            f"SELECT room_id from checked_in where customer_id={data['cust_id']}"
+        )
+        room_no = cursor.fetchone()['room_id']
+
+        cursor.execute(
+            f"SELECT category_id from rooms where room_no={room_no}")
+        room_category_id = cursor.fetchone()['category_id']
+
+        cursor.execute(
+            f"SELECT * from room_categories where id={room_category_id}")
+
+        base_charge = cursor.fetchone()['price']
         base_charges_dict = ({
             'name': 'Base Charges',
             'amount': days * base_charge
         })
         bill += [base_charges_dict]
 
+        # Change stat of room to available
+        cursor.execute(f"UPDATE rooms SET status=0 WHERE room_no={room_no}")
+
+        # Services Bill
+
         cursor.execute(
             f"SELECT * from services where customer_id={data['cust_id']}")
         user_avail_services = cursor.fetchall()
-        print(user_avail_services, 'user_avail_services')
 
         cursor.execute("SELECT * from services_categories")
         id_services_db = cursor.fetchall()
-        print(id_services_db, 'id_services_db')
 
         if len(user_avail_services) != 0:
             for service in user_avail_services:
@@ -411,7 +467,14 @@ def checkout():
                         bill += [temp_price_dict]
 
         else:
-            bill += ({'name': 'No Services', 'amount': 0})
+            bill += [{'name': 'No Services', 'amount': 0}]
+
+        # Compress the list-o-dicts (remove duplicates if multiple times same service availed)
+        for i in bill:
+            for j in range(1, len(bill)):
+                if i['name'] == bill[j]['name']:
+                    i['amount'] += bill[j]['amount']
+                    bill.pop(j)
 
         # Calculate the total bill
         total_bill = 0

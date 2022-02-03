@@ -9,7 +9,7 @@ class reservationForm(FlaskForm):
     email = EmailField('Email', validators=[DataRequired(), Email()])
     phone = StringField('Phone', validators=[DataRequired(), Length(min=10, max=10)])
     address = StringField('Address', validators=[DataRequired()])  # ======Make this a dropdown menu
-    id_type = SelectField('ID Type', choices=[('A', 'Aadhar Card'), ('P', 'Passport'), ('', 'PAN Card')], validators=[DataRequired()])
+    id_type = SelectField('ID Type', choices=[('A', 'Aadhar Card'), ('P', 'Passport'), ('X', 'PAN Card')], validators=[DataRequired()])
     id_number = StringField('ID Number', validators=[DataRequired()])
     arrival_date = DateField('Arrival Date', validators=[DataRequired()])
     departure_date = DateField('Departure Date', validators=[DataRequired()])

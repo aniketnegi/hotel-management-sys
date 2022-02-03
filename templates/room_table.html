@@ -1,6 +1,9 @@
 {% extends 'admin_base.html' %}
 
 {% block content %}
+{% if state %}
+    Click<a href="{{ url_for('confirm') }}"> here </a> to go back to the confirmation page.
+{% endif %}
 <div class="container-fluid p-3 my-1">
     <div class="display-5">
         Room Details
