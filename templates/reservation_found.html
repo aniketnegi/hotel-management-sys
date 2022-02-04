@@ -44,7 +44,7 @@
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div class="row my-4">
             <div class="col">
                 <div class="card">
                     <div class="card-header">
@@ -78,6 +78,44 @@
                     </div>
                     <div class="card-body">
                         {{ customer_data.id_proof_no }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>
+                            Number of Guests
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {{ guests_no }}
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>
+                            Room Preference
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {{ room_preference }}
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>
+                            Comments
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        {{ customer_data.comments }}
                     </div>
                 </div>
             </div>

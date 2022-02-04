@@ -2,8 +2,22 @@
 
 {% block content %}
 {% if state %}
+<div class="container text-black-50 my-3">
     Click<a href="{{ url_for('confirm') }}"> here </a> to go back to the confirmation page.
+</div>
 {% endif %}
+
+<!-- Flash-->
+<div class="container">
+    {% for message in get_flashed_messages() %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+
+
 <div class="container-fluid p-3 my-1">
     <div class="display-5">
         Room Details
@@ -25,9 +39,9 @@
                 <td>{{ room.category_id }}</td>
                 <td>{{ room.rooms }}</td>
                 {% if room.status %}
-                    <td>Occupied</td>
+                <td>Occupied</td>
                 {% else %}
-                    <td>Vacant</td>
+                <td>Vacant</td>
                 {% endif %}
             </tr>
             {% endfor %}
@@ -43,7 +57,7 @@
                 { orderable: false },
                 null,
                 null,
-                ],
+            ],
         });
     });
 </script>

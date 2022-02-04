@@ -17,7 +17,7 @@
 from flask import Flask, redirect, render_template, url_for, flash
 from webforms import reservationForm, loginForm, confirmReservation, roomDetails, searchReservation, servicesForm, userServicesForm, checkoutForm
 import pymysql as pm
-from datetime import datetime
+import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
@@ -49,7 +49,7 @@ def checkLoggedIn():
 
 def generateRandomID():
     global cursor
-    cursor.execute("SELECT COUNT(*) FROM customer")
+    cursor.execute("SELECT COUNT(*) FROM checked_in")
     count = cursor.fetchone()
     count = count['COUNT(*)']
     count += 1
@@ -76,8 +76,15 @@ def index():
                     'Arrival date cannot be after departure date! Please try again.'
                 )
                 return redirect(url_for('index'))
+
+            elif str(data['arrival_date']) < datetime.date.today().strftime(
+                    "%Y-%m-%d"):
+                flash('This is not a valid arrival date! Please try again.')
+                return redirect(url_for('index'))
+
             else:
-                current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+                current_time = datetime.datetime.utcnow().strftime(
+                    "%Y-%m-%d %H:%M:%S")
 
                 data['comments'] = 'NULL' if data['comments'] == '' else data[
                     'comments']  # Just a Default Value
@@ -213,6 +220,14 @@ def reservation_found(id):
         'X': 'PAN Card',
     }
 
+    room_pref_dict = {
+        '1': 'Deluxe Room',
+        '2': 'Single Room',
+        '3': 'Family Room',
+        '4': 'Twin Bed Room',
+        "NULL": 'No Preference'
+    }
+
     if form.validate_on_submit():
 
         if form.delete.data:
@@ -227,18 +242,27 @@ def reservation_found(id):
         elif form.confirm.data:
             # Assign a room number to the customer
             cursor.execute(
-                f"SELECT * FROM rooms WHERE status = 0 and room_type = '{customer_data['room_preference']}'"
+                f"SELECT * FROM rooms WHERE status = 0 and category_id = '{customer_data['room_preference']}'"
             )
             room_data = cursor.fetchone()
+            print(room_data)
             if room_data is not None:
                 cursor.execute(
                     f"UPDATE rooms SET status = 1 WHERE room_no = {room_data['room_no']}"
                 )
             else:
+                # Get the list of rooms
+                cursor.execute("SELECT * FROM rooms")
+                rooms = cursor.fetchall()
+                for i in rooms:
+                    i['status'] = bool(i['status'])
+
                 flash(
                     'The preferred room is not available! Please refer to this room table for available rooms.'
                 )
-                return render_template('room_table.html', state=True)
+                return render_template('room_table.html',
+                                       state=True,
+                                       room_data=rooms)
 
             # Change status in booked table
             cursor.execute(
@@ -246,20 +270,28 @@ def reservation_found(id):
 
             # Generate a unique id for the customer and insert into checked_in table first, followed by the check_in info.
             customer_id = generateRandomID()
+
+            # pymysql.err.OperationalError: (1054, "Unknown column 'X' in 'field list'")
             cursor.execute(
-                "INSERT INTO checked_in (customer_id, booking_cid) VALUES (%s, %s)",
-                (customer_id, id))
-            cursor.execute(
-                f"INSERT INTO checked_in(name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults) where customer_id = {customer_id} SELECT name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults FROM booked WHERE booking_id = {id}"
-            )
+                "INSERT INTO checked_in (customer_id, room_id, name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults, booking_cid) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(customer_id, room_data['room_no'],
+                        customer_data['name'], customer_data['contact_no'],
+                        customer_data['address'], customer_data['email'],
+                        customer_data['id_proof_type'],
+                        customer_data['id_proof_no'], customer_data['date_in'],
+                        customer_data['date_out'],
+                        customer_data['no_children'],
+                        customer_data['no_adults'], id))
 
             db.commit()
             flash('Reservation has been confirmed!')
             return redirect(url_for('confirm'))
-    return render_template('reservation_found.html',
-                           customer_data=customer_data,
-                           form=form,
-                           id_proof = id_proof_dict[customer_data['id_proof_type']])
+    return render_template(
+        'reservation_found.html',
+        customer_data=customer_data,
+        form=form,
+        id_proof=id_proof_dict[customer_data['id_proof_type']],
+        guests_no=customer_data['no_children'] + customer_data['no_adults'],
+        room_preference=room_pref_dict[customer_data['room_preference']])
 
 
 @app.route('/admin/edit/<int:id>', methods=['GET', 'POST'])
@@ -296,7 +328,7 @@ def bookings():
     if form.validate_on_submit():
         data = form.data
 
-        current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        current_time = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
         data['comments'] = 'NULL' if data['comments'] == '' else data[
             'comments']  # Just a Default Value
@@ -352,7 +384,7 @@ def services(id):
 
     if form.validate_on_submit() and form.submit.data:
         data = form.data
-        current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        current_time = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         cursor.execute(
             "INSERT INTO services(service_id, customer_id, service_date, comments, bill) VALUES (%s, %s, %s, %s, %s)",
             (data['service_id'], id, current_time, data['comments'],
@@ -372,7 +404,7 @@ def checkout():
             f"SELECT * from checked_in where customer_id={data['cust_id']}")
         customer_data = cursor.fetchone()
 
-        current_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        current_time = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
         if customer_data != None:
             try:
@@ -419,7 +451,7 @@ def checkout():
 
         date1 = customer_data['date_in']
         #date2 = customer_data['date_out']
-        date2 = current_time
+        date2 = data['today_date']
         days = date_diff(date1, date2) + 1
 
         # Calculate the bill for each service

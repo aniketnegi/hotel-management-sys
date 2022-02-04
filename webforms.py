@@ -3,7 +3,6 @@ from wtforms import StringField, PasswordField, SubmitField, EmailField, SelectF
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 
 
-# Maybe add room preference and all, but meh
 class reservationForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     email = EmailField('Email', validators=[DataRequired(), Email()])
@@ -50,6 +49,7 @@ class userServicesForm(FlaskForm):
 class checkoutForm(FlaskForm):
     cust_id = StringField('Customer ID', validators=[DataRequired()])
     payment_options = SelectField('Payment Options', choices=[('1', 'Cash'), ('2', 'Card'), ('3', 'Online')], validators=[DataRequired()])
+    today_date = DateField('Today Date', validators=[DataRequired()])
     submit = SubmitField('Confirm Checkout')
 
 class roomDetails(FlaskForm):
