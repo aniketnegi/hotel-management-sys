@@ -143,34 +143,33 @@ def login():
 
 @app.route('/admin/dashboard', methods=['GET', 'POST'])
 def admin():
-    if checkLoggedIn():
-        form = roomDetails()
-        # Calculate the number of online bookings -
-        cursor.execute("SELECT COUNT(*) FROM booked WHERE status = 0")
-        online_bookings = cursor.fetchone()['COUNT(*)']
-
-        # Calculate the number of guests -
-        cursor.execute("SELECT COUNT(*) FROM checked_in")
-        guests = cursor.fetchone()['COUNT(*)']
-
-        # Calculate the number of vacant rooms -
-        cursor.execute("SELECT COUNT(*) FROM rooms WHERE status = 0")
-        vacant_rooms = cursor.fetchone()['COUNT(*)']
-
-        if form.validate_on_submit() and form.submit.data:
-            cursor.execute("SELECT * FROM rooms")
-            rooms = cursor.fetchall()
-            for i in rooms:
-                i['status'] = bool(i['status'])
-            return render_template('room_table.html', room_data=rooms)
-
-        return render_template('admin.html',
-                               online_bookings=online_bookings,
-                               guests=guests,
-                               vacant_rooms=vacant_rooms,
-                               form=form)
-    else:
+    if not checkLoggedIn():
         return redirect('unauthorized')
+    form = roomDetails()
+    # Calculate the number of online bookings -
+    cursor.execute("SELECT COUNT(*) FROM booked WHERE status = 0")
+    online_bookings = cursor.fetchone()['COUNT(*)']
+
+    # Calculate the number of guests -
+    cursor.execute("SELECT COUNT(*) FROM checked_in")
+    guests = cursor.fetchone()['COUNT(*)']
+
+    # Calculate the number of vacant rooms -
+    cursor.execute("SELECT COUNT(*) FROM rooms WHERE status = 0")
+    vacant_rooms = cursor.fetchone()['COUNT(*)']
+
+    if form.validate_on_submit() and form.submit.data:
+        cursor.execute("SELECT * FROM rooms")
+        rooms = cursor.fetchall()
+        for i in rooms:
+            i['status'] = bool(i['status'])
+        return render_template('room_table.html', room_data=rooms)
+
+    return render_template('admin.html',
+                           online_bookings=online_bookings,
+                           guests=guests,
+                           vacant_rooms=vacant_rooms,
+                           form=form)
 
 
 @app.route('/admin/unauthorized')
