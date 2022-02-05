@@ -25,6 +25,6 @@ def insert_rooms():
 
 if __name__ == '__main__':
     insert_room_categories()
-   # insert_rooms()
+    insert_rooms()
     db.commit()
     db.close()

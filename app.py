@@ -69,7 +69,8 @@ def index():
     else:
 
         if form.validate_on_submit():
-            data = form.data
+            data = form.data   
+            current_date = datetime.date.today().strftime("%Y-%m-%d")
 
             if data['arrival_date'] > data['departure_date']:
                 flash(
@@ -77,14 +78,12 @@ def index():
                 )
                 return redirect(url_for('index'))
 
-            elif str(data['arrival_date']) < datetime.date.today().strftime(
-                    "%Y-%m-%d"):
+            elif str(data['arrival_date']) < current_date:
                 flash('This is not a valid arrival date! Please try again.')
                 return redirect(url_for('index'))
 
             else:
-                current_time = datetime.datetime.utcnow().strftime(
-                    "%Y-%m-%d %H:%M:%S")
+                current_time = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
                 data['comments'] = 'NULL' if data['comments'] == '' else data[
                     'comments']  # Just a Default Value
@@ -96,10 +95,14 @@ def index():
                      data['arrival_date'], data['departure_date'],
                      data['no_children'], data['no_adults'],
                      data['room_preference'], data['comments'], current_time))
-
+                
                 db.commit()
 
-                flash(f'Reservation for {form.name.data} has been made!')
+                cursor.execute(f"SELECT booking_id FROM booked WHERE name = '{data['name']}'")
+                booking_id = cursor.fetchone()
+                booking_id = booking_id['booking_id']
+
+                flash(f'Reservation for {form.name.data} has been made! Your booking ID is {booking_id}')
                 return redirect(url_for('index'))
 
     return render_template('index.html', form=form)
@@ -272,15 +275,7 @@ def reservation_found(id):
             customer_id = generateRandomID()
 
             # pymysql.err.OperationalError: (1054, "Unknown column 'X' in 'field list'")
-            cursor.execute(
-                "INSERT INTO checked_in (customer_id, room_id, name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults, booking_cid) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(customer_id, room_data['room_no'],
-                        customer_data['name'], customer_data['contact_no'],
-                        customer_data['address'], customer_data['email'],
-                        customer_data['id_proof_type'],
-                        customer_data['id_proof_no'], customer_data['date_in'],
-                        customer_data['date_out'],
-                        customer_data['no_children'],
-                        customer_data['no_adults'], id))
+            cursor.execute(f"INSERT INTO checked_in (customer_id, room_id, name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults, booking_cid) VALUES ({customer_id}, {room_data['room_no']}, '{customer_data['name']}', {customer_data['contact_no']}, '{customer_data['address']}', '{customer_data['email']}', '{customer_data['id_proof_type']}', '{customer_data['id_proof_no']}', '{customer_data['date_in']}', '{customer_data['date_out']}', {customer_data['no_children']}, {customer_data['no_adults']}, {id})")
 
             db.commit()
             flash('Reservation has been confirmed!')
@@ -294,6 +289,7 @@ def reservation_found(id):
         room_preference=room_pref_dict[customer_data['room_preference']])
 
 
+# Maybe put this feature for the future
 @app.route('/admin/edit/<int:id>', methods=['GET', 'POST'])
 def edit_reservation(id):
     form = reservationForm()
@@ -309,7 +305,7 @@ def edit_reservation(id):
     }
     pref = preference_dict[customer_data['room_preference']]
 
-    if form.validate_on_submit():
+    if form.validate_on_submit() and form.submit.data:
         data = form.data
         cursor.execute(
             f"UPDATE booked SET name = '{data['name']}', contact_no = '{data['phone']}', address = '{data['address']}', email = '{data['email']}', id_proof_type = '{data['id_type']}', id_proof_no = '{data['id_number']}', date_in = '{data['arrival_date']}', date_out = '{data['departure_date']}', no_children = '{data['no_children']}', no_adults = '{data['no_adults']}', room_preference = '{data['room_preference']}', comments = '{data['comments']}' WHERE booking_id = {id}"
@@ -363,7 +359,7 @@ def userServices():
         data = form.data
 
         cursor.execute(
-            f"SELECT * from checked_in where {data['search_by']}={data['search_value']}"
+            f"SELECT * from checked_in where {data['search_by']} = '{data['search_value']}'"
         )
         customer_data = cursor.fetchall()
         if len(customer_data) == 0:
@@ -397,126 +393,130 @@ def services(id):
 @app.route('/admin/checkout', methods=['GET', 'POST'])
 def checkout():
     form = checkoutForm()
-    if form.validate_on_submit() and form.submit.data:
-        data = form.data
 
-        cursor.execute(
-            f"SELECT * from checked_in where customer_id={data['cust_id']}")
-        customer_data = cursor.fetchone()
+    if form.validate_on_submit():
+        if form.submit.data:
+            data = form.data
 
-        current_time = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+            cursor.execute(
+                f"SELECT * from checked_in where customer_id={data['cust_id']}")
+            customer_data = cursor.fetchone()
 
-        if customer_data != None:
-            try:
-                cursor.execute(
-                    "INSERT INTO checkout(customer_id, checkout_time) VALUES (%s, %s)",
-                    (data['cust_id'], current_time))
+            current_time = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
-                cursor.execute(
-                    'UPDATE checked_in SET date_out = %s WHERE customer_id = %s',
-                    (current_time, data['cust_id']))
+            if customer_data is not None:
+                try:
+                    cursor.execute(
+                        "INSERT INTO checkout(customer_id, checkout_time) VALUES (%s, %s)",
+                        (data['cust_id'], current_time))
 
-                cursor.execute(
-                    f"UPDATE checked_in SET status = 2 WHERE customer_id = {data['cust_id']}"
-                )
+                    cursor.execute(
+                        'UPDATE checked_in SET date_out = %s WHERE customer_id = %s',
+                        (current_time, data['cust_id']))
 
-                cursor.execute(
-                    f"UPDATE checked_in SET booking_cid = NULL WHERE customer_id = {data['cust_id']}"
-                )
+                    cursor.execute(
+                        f"UPDATE checked_in SET status = 2 WHERE customer_id = {data['cust_id']}"
+                    )
 
-                cursor.execute(
-                    f"UPDATE checked_in SET room_id = NULL WHERE customer_id = {data['cust_id']}"
-                )
+                    cursor.execute(
+                        f"UPDATE checked_in SET booking_cid = NULL WHERE customer_id = {data['cust_id']}"
+                    )
 
-            except Exception as e:
-                flash(
-                    'Customer has already checked out!\nPlease recheck the information.'
-                )
+                    db.commit()
+                    
+                    # ===== DO BILL CALC. ========
+
+                    bill = []
+
+                    # Calculate the difference between two dates
+                    def date_diff(date1, date2):
+                        date1 = datetime.datetime.strptime(str(date1).split()[0], "%Y-%m-%d")
+                        date2 = datetime.datetime.strptime(str(date2).split()[0], "%Y-%m-%d")
+                        return abs((date2 - date1).days)
+
+                    date1 = customer_data['date_in']
+                    #date2 = customer_data['date_out']
+                    date2 = data['today_date']
+                    days = date_diff(date1, date2) + 1
+
+                    # Calculate the bill for each service
+                    cursor.execute(
+                        f"SELECT room_id from checked_in where customer_id={data['cust_id']}"
+                    )
+                    room_no = cursor.fetchone()['room_id']
+
+                    cursor.execute(
+                        f"SELECT category_id from rooms where room_no={room_no}")
+                    room_category_id = cursor.fetchone()['category_id']
+
+                    cursor.execute(
+                        f"SELECT * from room_categories where id={room_category_id}")
+
+                    base_charge = cursor.fetchone()['price']
+                    base_charges_dict = ({
+                        'name': 'Base Charges',
+                        'amount': days * base_charge
+                    })
+                    bill += [base_charges_dict]
+
+                    # Change stat of room to available
+                    cursor.execute(f"UPDATE rooms SET status=0 WHERE room_no={room_no}")
+                    cursor.execute(
+                        f"UPDATE checked_in SET room_id = 0 WHERE customer_id = {data['cust_id']}"
+                    )
+                    db.commit()
+                    # Services Bill
+
+                    cursor.execute(
+                        f"SELECT * from services where customer_id={data['cust_id']}")
+                    user_avail_services = cursor.fetchall()
+
+                    cursor.execute("SELECT * from services_categories")
+                    id_services_db = cursor.fetchall()
+
+                    if len(user_avail_services) != 0:
+                        for service in user_avail_services:
+                            for service_db_dict in id_services_db:
+                                if int(service_db_dict['id']) == int(
+                                        service['service_id']):
+                                    temp_price_dict = ({
+                                        'name': service_db_dict['name'],
+                                        'amount': int(service['bill'])
+                                    })
+                                    bill += [temp_price_dict]
+
+                    else:
+                        bill += [{'name': 'No Services', 'amount': 0}]
+
+                    # Compress the list-o-dicts (remove duplicates if multiple times same service availed)
+                    '''for i in bill:
+                        for j in range(1, len(bill)):
+                            if i['name'] == bill[j]['name']:
+                                i['amount'] += bill[j]['amount']
+                                bill.pop(j)'''
+                    # Calculate the total bill
+                    total_bill = 0
+                    for i in bill:
+                        total_bill += i['amount']
+
+                    return render_template('checkout.html',
+                                        customer_data=customer_data,
+                                        status=True,
+                                        bill=bill,
+                                        total=total_bill)
+                except Exception as e:
+                    
+                    print(e )
+                    flash(
+                        'Customer has already checked out!\nPlease recheck the information.'
+                    )
+                    return redirect(url_for('checkout'))
+                
+
+            else:
+                flash('Customer not found!')
                 return redirect(url_for('checkout'))
-            db.commit()
 
-        else:
-            flash('Customer not found!')
-            return redirect(url_for('checkout'))
-
-        # ===== DO BILL CALC. ========
-
-        bill = []
-
-        # Calculate the difference between two dates
-        def date_diff(date1, date2):
-            date1 = datetime.strptime(str(date1).split()[0], "%Y-%m-%d")
-            date2 = datetime.strptime(str(date2).split()[0], "%Y-%m-%d")
-            return abs((date2 - date1).days)
-
-        date1 = customer_data['date_in']
-        #date2 = customer_data['date_out']
-        date2 = data['today_date']
-        days = date_diff(date1, date2) + 1
-
-        # Calculate the bill for each service
-        cursor.execute(
-            f"SELECT room_id from checked_in where customer_id={data['cust_id']}"
-        )
-        room_no = cursor.fetchone()['room_id']
-
-        cursor.execute(
-            f"SELECT category_id from rooms where room_no={room_no}")
-        room_category_id = cursor.fetchone()['category_id']
-
-        cursor.execute(
-            f"SELECT * from room_categories where id={room_category_id}")
-
-        base_charge = cursor.fetchone()['price']
-        base_charges_dict = ({
-            'name': 'Base Charges',
-            'amount': days * base_charge
-        })
-        bill += [base_charges_dict]
-
-        # Change stat of room to available
-        cursor.execute(f"UPDATE rooms SET status=0 WHERE room_no={room_no}")
-
-        # Services Bill
-
-        cursor.execute(
-            f"SELECT * from services where customer_id={data['cust_id']}")
-        user_avail_services = cursor.fetchall()
-
-        cursor.execute("SELECT * from services_categories")
-        id_services_db = cursor.fetchall()
-
-        if len(user_avail_services) != 0:
-            for service in user_avail_services:
-                for service_db_dict in id_services_db:
-                    if int(service_db_dict['id']) == int(
-                            service['service_id']):
-                        temp_price_dict = ({
-                            'name': service_db_dict['name'],
-                            'amount': int(service['bill'])
-                        })
-                        bill += [temp_price_dict]
-
-        else:
-            bill += [{'name': 'No Services', 'amount': 0}]
-
-        # Compress the list-o-dicts (remove duplicates if multiple times same service availed)
-        for i in bill:
-            for j in range(1, len(bill)):
-                if i['name'] == bill[j]['name']:
-                    i['amount'] += bill[j]['amount']
-                    bill.pop(j)
-
-        # Calculate the total bill
-        total_bill = 0
-        for i in bill:
-            total_bill += i['amount']
-
-        return render_template('checkout.html',
-                               customer_data=customer_data,
-                               status=True,
-                               bill=bill,
-                               total=total_bill)
     return render_template('checkout.html', form=form)
 
 

@@ -1,11 +1,11 @@
 {% extends 'admin_base.html' %}
-  
-  {% block title %}
-      Bookings
-  {% endblock %}
-  
-  {% block content %}
-      <!--Form-->
+
+{% block title %}
+Bookings
+{% endblock %}
+
+{% block content %}
+<!--Form-->
 <div class="container w-50 shadow p-3 mb-5 bg-body rounded my-4">
     <form method="POST">
         {{ form.hidden_tag() }}
@@ -33,6 +33,7 @@
 
         <br>
 
+<!--
         <div class="row row-cols-2">
             <div class="col">
                 {{ form.arrival_date.label(class="form-label")}}*
@@ -43,8 +44,7 @@
                 {{ form.departure_date(class="form-control", value = customer_data.date_out)}}
             </div>
         </div>
-
-        <br>
+-->
 
         <div class="row row-cols-2">
             <div class="cols">
@@ -75,5 +75,4 @@
 
     </form>
 </div>
-  {% endblock %}
-  
+{% endblock %}

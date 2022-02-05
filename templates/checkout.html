@@ -6,9 +6,11 @@
     Billing Information
 </div>
 <hr>
-Name: {{ customer_data.name }}
-Phone: {{ customer_data.contact_no }}
-Email: {{ customer_data.email }}
+<div class="text-black-50">
+    Name: {{ customer_data.name }} <br>
+    Phone: {{ customer_data.contact_no }} <br>
+    Email: {{ customer_data.email }} <br>
+</div>
 <table id="data" class="table table-striped table-hover table- table-bordered">
     <thead>
         <tr>
@@ -49,6 +51,9 @@ Email: {{ customer_data.email }}
         <br>
         {{ form.payment_options.label(class="form-label")}}
         {{ form.payment_options(class="form-control")}}
+        <br>
+        {{ form.today_date.label(class="form-label")}}
+        {{ form.today_date(class="form-control")}}
         <div class="container">
             {{ form.submit(class="btn btn-dark my-5 position-absolute top-150 start-50 translate-middle")}}
         </div>

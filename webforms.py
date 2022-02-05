@@ -49,7 +49,7 @@ class userServicesForm(FlaskForm):
 class checkoutForm(FlaskForm):
     cust_id = StringField('Customer ID', validators=[DataRequired()])
     payment_options = SelectField('Payment Options', choices=[('1', 'Cash'), ('2', 'Card'), ('3', 'Online')], validators=[DataRequired()])
-    today_date = DateField('Today Date', validators=[DataRequired()])
+    today_date = DateField('Current Date', validators=[DataRequired()])
     submit = SubmitField('Confirm Checkout')
 
 class roomDetails(FlaskForm):
