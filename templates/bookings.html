@@ -11,6 +11,17 @@ Bookings
     </div>
     <hr>
 </div>
+
+<!--Flash-->
+<div class="container">
+    {% for message in get_flashed_messages() %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+
 <!--Form-->
 <div class="container-fluid w-75 shadow p-3 my-5 bg-body rounded">
     <form method="POST">

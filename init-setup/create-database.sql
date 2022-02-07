@@ -37,11 +37,9 @@ CREATE TABLE IF NOT EXISTS `hotel_db`.`booked` (
   `time_booked` DATETIME NULL DEFAULT NULL,
   `status` TINYINT(1) NOT NULL DEFAULT '0' COMMENT '0: Not Confirmed 1: Checked In',
   PRIMARY KEY (`booking_id`),
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE)
+  UNIQUE INDEX `id_proof_no_UNIQUE` (`name` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 9
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
+  AUTO_INCREMENT = 9;
 
 
 -- -----------------------------------------------------
@@ -67,9 +65,7 @@ CREATE TABLE IF NOT EXISTS `hotel_db`.`checked_in` (
   UNIQUE INDEX `customer_id_UNIQUE` (`customer_id` ASC) VISIBLE,
   UNIQUE INDEX `booking_cid_UNIQUE` (`booking_cid` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 990
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
+  AUTO_INCREMENT = 990;
 
 
 -- -----------------------------------------------------
@@ -79,9 +75,7 @@ CREATE TABLE IF NOT EXISTS `hotel_db`.`checkout` (
   `customer_id` INT NOT NULL,
   `checkout_time` DATETIME NOT NULL,
   PRIMARY KEY (`customer_id`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -92,9 +86,7 @@ CREATE TABLE IF NOT EXISTS `hotel_db`.`room_categories` (
   `name` TEXT NOT NULL,
   `price` FLOAT NOT NULL,
   PRIMARY KEY (`id`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -104,11 +96,9 @@ CREATE TABLE IF NOT EXISTS `hotel_db`.`rooms` (
   `room_no` INT NOT NULL,
   `rooms` VARCHAR(45) NOT NULL,
   `category_id` INT NOT NULL,
-  `status` TINYINT(1) NOT NULL DEFAULT '0' COMMENT '\'0 = Available/Unoccupied , 1= Unvailable/Occupied',
+  `status` TINYINT(1) NOT NULL DEFAULT '0' COMMENT '\'0 = Available/Unoccupied , 1= Unvailable/Occupied\'',
   PRIMARY KEY (`room_no`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -123,9 +113,7 @@ CREATE TABLE IF NOT EXISTS `hotel_db`.`services` (
   `bill` FLOAT NULL DEFAULT NULL,
   PRIMARY KEY (`index`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 7
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
+  AUTO_INCREMENT = 7;
 
 
 -- -----------------------------------------------------
@@ -135,9 +123,7 @@ CREATE TABLE IF NOT EXISTS `hotel_db`.`services_categories` (
   `id` VARCHAR(1) NOT NULL,
   `name` TEXT NOT NULL,
   PRIMARY KEY (`id`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -152,9 +138,7 @@ CREATE TABLE IF NOT EXISTS `hotel_db`.`users` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `password_UNIQUE` (`password` ASC) VISIBLE,
   UNIQUE INDEX `username_UNIQUE` (`username` ASC) VISIBLE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
+ENGINE = InnoDB;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

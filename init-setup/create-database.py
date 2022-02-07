@@ -1,19 +1,26 @@
 import pymysql as pm
 
-
 con = pm.connect(host="localhost",
                 user="root",
                 passwd="root",
                 cursorclass=pm.cursors.DictCursor)
 
-cur = con.cursor()
+cursor = con.cursor()
 
-# Your connection code here...
+commands = []
 
-with open('create-database.sql', 'r') as sql_file:
-    result_iterator = cur.execute(sql_file.read(), multi=True)
-    for res in result_iterator:
-        print("Running query: ", res)  # Will print out a short representation of the query
-        print(f"Affected {res.rowcount} rows" )
+with open("create-database.sql", "r") as f:
+    commands = [x.strip("\n") for x in f.readlines() if not x.startswith("--") and x!="\n"]
+    
+    run = ""
+    for command in commands:
+        run += command
+        if run[-1] == ";":
+            cursor.execute(run)
+            con.commit()
+            print("Executed:", run)
+            print("\n")
+            run = ""
 
-    con.commit()  
+
+print("\n\nDatabase created successfully!\n\n")
