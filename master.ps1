@@ -1,10 +1,8 @@
-﻿Set-Location D:\programming\learning-flask
-
-$venv_path = "D:\programming\learning-flask\venv"
+﻿$venv_path = ".\venv"
 
 $venv_exist = Test-Path $venv_path
 
-$dependencies_exist = Test-Path D:\programming\learning-flask\runtime.txt
+$dependencies_exist = Test-Path .\runtime.txt
 
 if ($venv_exist) {
     Write-Host "
@@ -50,7 +48,8 @@ venv does not exist
 creating venv
 "
     pip install virtualenv
-    virtualenv --python "C:\Users\rajee\AppData\Local\Programs\Python\Python38\python.exe" venv
+    virtualenv venv
+#    virtualenv --python "C:\Users\rajee\AppData\Local\Programs\Python\Python38\python.exe" venv
     Write-Host "
 venv created
 "

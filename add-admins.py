@@ -88,6 +88,32 @@ def delAdmin():
             f"\nI'm sorry, I don't understand '{choice}'.\nTaking you back to the Main Menu!\n"
         )
 
+def login():
+    user_creds = input("Enter your username: ")
+    pass_creds = input("Enter your password: ")
+
+    username = cur.execute(
+            f'SELECT username FROM users WHERE username = "{user_creds}"'
+        )
+
+    if bool(username):
+        username = cur.fetchone()[0]
+        password = cur.execute(
+            f'SELECT password FROM users WHERE username = "{user_creds}"'
+        )
+        if bool(password):
+            password = cur.fetchone()[0]
+            if pass_creds != password:
+                return (False, "Incorrect password!")
+            cur.execute(
+                f"SELECT name FROM users WHERE username = '{user_creds}'"
+            )
+            name = cur.fetchone()[0]
+            return (True, f"Welcome! {name}")
+        else:
+            return (False, "Invalid username or password!")
+    else:
+        return (False, "Invalid username!")
 
 #=================================TODO - Add general func to all final "exit this utility or return to main menu calls" that pressing Enter will take back to main  menu=============================================
 def main():
@@ -95,7 +121,14 @@ def main():
     columns = shutil.get_terminal_size().columns
     print('Welcome to the Admin Utility!'.center(columns))
     print('\n\n')
-    state = True
+
+    state, message = login()
+
+    
+    print("\n\n")
+    print(message)
+    print("\n\n")
+
     while state:
         choice_Master = input(
             "Would you like to -\n1. Add an ADMIN\n2. Review ADMINS\n3. Edit Existing ADMINS\n4. Delete and existing ADMIN\n5. Exit\n"
@@ -157,27 +190,25 @@ def main():
             action_exitCode = input(
                 "\nEnter 'y' to exit this utility or 'n' to continue to the Main Menu: "
             ).lower()
-            if action_exitCode == 'y':
-                state = False
-                print(
-                    "\nThank you for using this utility!\nExiting the program...\n"
-                )
-            else:
+            if action_exitCode != 'y':
                 continue
 
+            state = False
+            print(
+                "\nThank you for using this utility!\nExiting the program...\n"
+            )
         elif choice_Master == "4":
             delAdmin()
             action_exitCode = input(
                 "\nEnter 'y' to exit this utility or 'n' to continue to the Main Menu: "
             ).lower()
-            if action_exitCode == 'y':
-                state = False
-                print(
-                    "\nThank you for using this utility!\nExiting the program...\n"
-                )
-            else:
+            if action_exitCode != 'y':
                 continue
 
+            state = False
+            print(
+                "\nThank you for using this utility!\nExiting the program...\n"
+            )
         elif choice_Master == "5":
             state = False
             print(

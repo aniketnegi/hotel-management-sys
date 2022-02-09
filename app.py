@@ -81,6 +81,10 @@ def index():
             elif str(data['arrival_date']) < current_date:
                 flash('This is not a valid arrival date! Please try again.')
                 return redirect(url_for('index'))
+            
+            elif data["no_children"] < 0 or data["no_adults"] < 0:
+                flash('Please enter valid number of people!')
+                return redirect(url_for('index'))
 
             else:
                 current_time = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
@@ -90,8 +94,8 @@ def index():
 
                 cursor.execute(
                     "INSERT INTO booked (name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults, room_preference, comments, time_booked) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                    (data['name'], data['phone'], data['address'],
-                     data['email'], data['id_type'], data['id_number'],
+                    (data['name'], str(data['phone']), data['address'],
+                     data['email'], data['id_type'], str(data['id_number']),
                      data['arrival_date'], data['departure_date'],
                      data['no_children'], data['no_adults'],
                      data['room_preference'], data['comments'], current_time))
@@ -341,8 +345,8 @@ def bookings():
 
             cursor.execute(
                 "INSERT INTO booked (name, contact_no, address, email, id_proof_type, id_proof_no, date_in, date_out, no_children, no_adults, room_preference, comments, time_booked) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                (data['name'], data['phone'], data['address'], data['email'],
-                data['id_type'], data['id_number'], data['arrival_date'],
+                (data['name'], str(data['phone']), data['address'], data['email'],
+                data['id_type'], str(data['id_number']), data['arrival_date'],
                 data['departure_date'], data['no_children'], data['no_adults'],
                 data['room_preference'], data['comments'], current_time))
 
